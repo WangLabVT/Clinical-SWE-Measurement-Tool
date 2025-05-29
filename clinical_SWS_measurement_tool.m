@@ -4,6 +4,9 @@
 % using on the SuperSonic Machine
 
 %written by Georgina Flynn-Smith 5/9/2025
+%updated 5/28/2025: removed color from region boxes (faceAlpha = 0), added
+%save function to save figure displaying all 3 circular ROI's, updated
+%label text color, updated grayscale display for better visualization
 
 %Inputs: SeriesDetails 
 %Outputs: 
@@ -82,9 +85,9 @@ while i <= series_length
     
         %display boxes to confirm region boundaries 
         %optional - recommend performing for first image in series to confirm
-        SWEImg = drawrectangle('Position', sweImgBox',"Color","Y");
-        BmodeImg = drawrectangle('Position',bModeImgBox',"Color","B");
-        colormapBox = drawrectangle('Position', colormapRegionBox',"Color","G");
+        SWEImg = drawrectangle('Position', sweImgBox',"Color","Y", 'FaceAlpha', 0);
+        BmodeImg = drawrectangle('Position',bModeImgBox',"Color","B", 'FaceAlpha', 0);
+        colormapBox = drawrectangle('Position', colormapRegionBox',"Color","G", 'FaceAlpha', 0);
     
         %calculate offset between SWE & B-mode image regions
         %This offset is used to mirror the boundaries of the colormap region onto the B-mode image.
@@ -93,26 +96,28 @@ while i <= series_length
         %display colormap region boundary & new (offset) region boundary in b-mode
         %portion of image
         GSBox = [colormapRegionBox(1) - offset(1); colormapRegionBox(2)-offset(2); colormapRegionBox(3); colormapRegionBox(4)];
-        drawrectangle('Position', GSBox', "Color", "R");
+        drawrectangle('Position', GSBox', "Color", "R", 'FaceAlpha', 0);
         
         %% 3.B USER PLACES 3 ROI'S
         %draw on greyscale portion of image
-        left_roi = drawcircle('FaceAlpha', 0, 'LineWidth', 1, 'MarkerSize', 0.5, 'Color', 'g','InteractionsAllowed', 'all', 'Label', 'Left ROI', 'LabelAlpha', 0.2); 
+        left_roi = drawcircle('FaceAlpha', 0, 'LineWidth', 1, 'MarkerSize', 0.5, 'Color', 'g','InteractionsAllowed', 'all', 'Label', 'Left ROI', 'LabelAlpha', 0.2, LabelTextColor="w"); 
         pause()
         left_center = left_roi.Center;
         left_radius = left_roi.Radius;
     
-        middle_roi = drawcircle('FaceAlpha', 0, 'LineWidth', 1, 'MarkerSize', 0.5, 'Color', 'r','InteractionsAllowed', 'all', 'Label', 'Middle ROI','LabelAlpha', 0.2); 
+        middle_roi = drawcircle('FaceAlpha', 0, 'LineWidth', 1, 'MarkerSize', 0.5, 'Color', 'r','InteractionsAllowed', 'all', 'Label', 'Middle ROI','LabelAlpha', 0.2, LabelTextColor="w"); 
         pause()
         middle_center = middle_roi.Center;
         middle_radius = middle_roi.Radius;
     
-        right_roi = drawcircle('FaceAlpha', 0, 'LineWidth', 1, 'MarkerSize', 0.5, 'Color', 'b','InteractionsAllowed', 'all', 'Label', 'Right ROI','LabelAlpha', 0.2); 
+        right_roi = drawcircle('FaceAlpha', 0, 'LineWidth', 1, 'MarkerSize', 0.5, 'Color', 'b','InteractionsAllowed', 'all', 'Label', 'Right ROI','LabelAlpha', 0.2, LabelTextColor="w"); 
         pause()
         right_center = right_roi.Center;
         right_radius = right_roi.Radius;
          
-    
+        %save figure displaying 3 ROI's
+        saveas(gcf, strcat(ID, '_', imnum, '.jpg'))
+
         %% 3.C PRE-PROCESS SWE PORTION OF IMAGE
         %translate each ROI to shear wave portion of image
         if left_center(1,1) < offset (1,1) | left_center(1,2) > offset(2,1)
@@ -130,7 +135,7 @@ while i <= series_length
             right_center(1,2) = right_center(1,2) + offset(2,1);
         end
     
-        % display drawn ROI's on SWE region of image, create mask
+        % display drawn ROI's on SWE region of image, create mask for each
         figure
         imshow(raw_img)
         drawrectangle('Position', colormapRegionBox');
@@ -142,6 +147,7 @@ while i <= series_length
     
         right_roi = drawcircle('Center', right_center, 'Radius', right_radius, 'FaceAlpha', 0, 'LineWidth', 1, 'Color', 'b', 'MarkerSize', 0.1, 'InteractionsAllowed', 'none', 'Label', 'Right ROI', 'LabelAlpha', 0);
         right_mask = createMask(right_roi);
+
            
         %crop masks to size of colormapRegionBox
         cropped_left_mask = left_mask(colormapRegionBox(2,1):(colormapRegionBox(2,1) + colormapRegionBox(4,1)), colormapRegionBox(1,1):(colormapRegionBox(1,1) + colormapRegionBox(3,1)));
@@ -179,8 +185,8 @@ while i <= series_length
         % (note this step is very time consuming)
         grayscaleSWEImage = transformSWEColormapToGrayscale(croppedSWEImage, map);
         figure
-        imshow(grayscaleSWEImage, [0,maxShearWaveSpeed])
-        
+        imshow(grayscaleSWEImage, [0,0.5*255]) %display range decreased for better visualization
+       
         % % reconstruct image to verify transformation was successful
         % reconstructedImage = reconstructSWEColormapFromGrayscale(grayscaleSWEImage, map);
         % figure
@@ -199,10 +205,11 @@ while i <= series_length
         %display combined image to reduce number of figures
         combined = left_GS+middle_GS+right_GS;
         figure()
-        imshow(combined, [0,maxShearWaveSpeed])
+        imshow(combined, [0,0.5*255]) %display range decreased for better visualization
 
         %pause to allow user to review output images
         pause(5)
+
 
         %% 3.D CALCULATE SWE VALUES
         [left_firstOrderStats, left_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(left_GS, maxShearWaveSpeed);
