@@ -8,15 +8,20 @@
 %save function to save figure displaying all 3 circular ROI's, updated
 %label text color, updated grayscale display for better visualization
 
+%updated 6/13/2025 to correct shear wave speed calculation error. Also 
+% corrected saving error for .mat file.
+
 %Inputs: SeriesDetails 
-%Outputs: 
+%Outputs: excel spreadsheet with shear wave speed measurements; .mat file
+%with all shear wave speed values within each of the 3 ROI's for all images
+%in the series
 
 %Notes: Offset calculation updated!
 
 %% 1. USER INPUTS 
 %review images beforehand and input here
 opacity = 100; %percent
-maxShearWaveSpeed = 10; %m/s
+maxShearModulus = 300; %needs to be modulus, not speed
 i=1; %change if you need to start partway through the series
 
 %% 2. START CODE
@@ -186,7 +191,7 @@ while i <= series_length
         grayscaleSWEImage = transformSWEColormapToGrayscale(croppedSWEImage, map);
         figure
         imshow(grayscaleSWEImage, [0,0.5*255]) %display range decreased for better visualization
-       
+
         % % reconstruct image to verify transformation was successful
         % reconstructedImage = reconstructSWEColormapFromGrayscale(grayscaleSWEImage, map);
         % figure
@@ -212,11 +217,11 @@ while i <= series_length
 
 
         %% 3.D CALCULATE SWE VALUES
-        [left_firstOrderStats, left_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(left_GS, maxShearWaveSpeed);
+        [left_firstOrderStats, left_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(left_GS, maxShearModulus);
         left_meanSWS = left_firstOrderStats.Mean;
-        [middle_firstOrderStats, middle_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(middle_GS, maxShearWaveSpeed);
+        [middle_firstOrderStats, middle_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(middle_GS, maxShearModulus);
         middle_meanSWS = middle_firstOrderStats.Mean;
-        [right_firstOrderStats, right_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(right_GS, maxShearWaveSpeed);
+        [right_firstOrderStats, right_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(right_GS, maxShearModulus);
         right_meanSWS = right_firstOrderStats.Mean;
 
         %% 3.E APPEND TO EXCEL SPREADSHEET
@@ -226,9 +231,9 @@ while i <= series_length
         output{i,3} = middle_meanSWS;
         output{i,4} = right_meanSWS;
         %update with full shear wave speed data (columns 5-7)
-        output{1,5} = left_shearWaveSpeeds;
-        output{1,6} = middle_shearWaveSpeeds;
-        output{1,7} = right_shearWaveSpeeds;
+        output{i,5} = left_shearWaveSpeeds;
+        output{i,6} = middle_shearWaveSpeeds;
+        output{i,7} = right_shearWaveSpeeds;
 
         %write to excel
         w = output(i,1:4);

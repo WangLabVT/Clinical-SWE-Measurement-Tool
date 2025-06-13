@@ -1,27 +1,33 @@
 %calcFirstOrderStatsSWEv2.m
 
+%Updated 6/13/2025 to convert shear modulus to shear wave speed, using
+%relation specific to SuperSonic machines. Removed entropy calculation.
+
 %DESCRIPTION: calculates first order stats for a shear wave colormap that
 %has been converted to gray scale. This code excludes shear wave values of
 %0, as these indicate regions where the machine could not detect the shear
 %wave speed. If a mask is used during pre-processing, excluded areas should
 %be indicated with a 0.
-%INPUT: Image in double format, maximum shear wave speed or shear modulus
-%value, depending on image 
-% OUTPUT: 1st order stats (structure), all shear wave speed or modulus 
+
+%INPUT: Image in double format, maximum shear modulus value (must be
+%modulus, shear wave speed does not have a linear relationship with
+%colormap)
+
+% OUTPUT: 1st order stats (structure), all shear wave speed
 % values within the image
 
-function [stats, data] = calcFirstOrderStatsSWEv2(grayscaleImage, maxShearWaveSpeed)
+function [stats, speed_data] = calcFirstOrderStatsSWEv2(grayscaleImage, maxShearModulus)
+    %convert from GS values to modulus values, extract data from map
+    shearWaveModulusMap = double(grayscaleImage)./255.*maxShearModulus;
+    mod_data = shearWaveModulusMap(shearWaveModulusMap ~= 0);
 
-    shearWaveSpeedMap = double(grayscaleImage)./255.*maxShearWaveSpeed;
-    data = shearWaveSpeedMap(shearWaveSpeedMap ~= 0);
+    %convert from modulus to speed
+    speed_data = 0.0190+0.5733.*sqrt(mod_data); %experimentally determined relationship
     
-    stats.Mean = mean(data);
-    stats.Median = median(data);
-    stats.Variance = var(data);
-    stats.Skewness = skewness(data);
-    stats.Kurtosis = kurtosis(data);
+    stats.Mean = mean(speed_data);
+    stats.Median = median(speed_data);
+    stats.Variance = var(speed_data);
+    stats.Skewness = skewness(speed_data);
+    stats.Kurtosis = kurtosis(speed_data);
     
-    tmp = grayscaleImage./255; %scales image from [0:255] to [0:1]
-    tmp(tmp == 0) = NaN; %exclude 0 values from calculation
-    stats.Entropy = entropy(tmp);
 end
