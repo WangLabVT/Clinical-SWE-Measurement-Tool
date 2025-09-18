@@ -217,11 +217,11 @@ while i <= series_length
 
 
         %% 3.D CALCULATE SWE VALUES
-        [left_firstOrderStats, left_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(left_GS, maxShearModulus);
+        [left_firstOrderStats, left_shearWaveSpeeds] = calcFirstOrderStatsSWEv3(left_GS, maxShearModulus);
         left_meanSWS = left_firstOrderStats.Mean;
-        [middle_firstOrderStats, middle_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(middle_GS, maxShearModulus);
+        [middle_firstOrderStats, middle_shearWaveSpeeds] = calcFirstOrderStatsSWEv3(middle_GS, maxShearModulus);
         middle_meanSWS = middle_firstOrderStats.Mean;
-        [right_firstOrderStats, right_shearWaveSpeeds] = calcFirstOrderStatsSWEv2(right_GS, maxShearModulus);
+        [right_firstOrderStats, right_shearWaveSpeeds] = calcFirstOrderStatsSWEv3(right_GS, maxShearModulus);
         right_meanSWS = right_firstOrderStats.Mean;
 
         %% 3.E APPEND TO EXCEL SPREADSHEET
